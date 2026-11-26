@@ -113,7 +113,7 @@ export default function TablePage({ params }: { params: { id: string } }) {
 
       {/* TODAY'S SPECIAL */}
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
-        <p className="font-semibold text-amber-800">🌟 Today's Special</p>
+        <p className="font-semibold text-amber-800">🌟 Today&apos;s Special</p>
         <p className="text-amber-700">Gulab Jamun — Rs 450</p>
       </div>
 
