@@ -13,3 +13,14 @@ export async function POST(request: Request) {
   );
   return NextResponse.json({ ok: true });
 }
+
+// GET: list reviews
+export async function GET() {
+  const { rows } = await query(
+    `SELECT r.*, t.number AS table_number
+     FROM reviews r
+     LEFT JOIN tables t ON r.table_id = t.id
+     ORDER BY r.created_at DESC LIMIT 50`
+  );
+  return NextResponse.json(rows);
+}
