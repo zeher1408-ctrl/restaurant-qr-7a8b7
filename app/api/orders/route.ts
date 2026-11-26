@@ -3,16 +3,19 @@ import { query } from "@/lib/db";
 
 // POST: create order
 export async function POST(request: Request) {
-  const { tableId, items } = await request.json();
+  const { tableId, items, guestName, guestPhone, notes } = await request.json();
   // items = [{ dishId, dishName, size, qty, unitPrice }]
 
   if (!tableId || !items?.length) {
     return NextResponse.json({ error: "tableId and items required" }, { status: 400 });
   }
+  if (!guestName?.trim() || !guestPhone?.trim()) {
+    return NextResponse.json({ error: "Guest name and phone number required" }, { status: 400 });
+  }
 
   const { rows } = await query(
-    `INSERT INTO orders (table_id) VALUES ($1) RETURNING id`,
-    [tableId]
+    `INSERT INTO orders (table_id, guest_name, guest_phone, notes) VALUES ($1, $2, $3, $4) RETURNING id`,
+    [tableId, guestName.trim(), guestPhone.trim(), notes?.trim() || null]
   );
   const orderId = rows[0].id;
 
