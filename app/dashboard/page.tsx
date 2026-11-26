@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 
@@ -69,12 +69,14 @@ export default function DashboardPage() {
     mutateDishes();
   };
 
-  const avgRating = reviews && reviews.length > 0
-    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
-    : "4.9";
+  const reviewCount = reviews?.length ?? 0;
+  const avgRating = reviewCount > 0
+    ? (reviews!.reduce((acc, r) => acc + r.rating, 0) / reviewCount).toFixed(1)
+    : "0.0";
 
-  const maxHourCount = stats?.hourlyFlow && stats.hourlyFlow.length > 0
-    ? Math.max(...stats.hourlyFlow.map(h => Number(h.count)), 1)
+  const hourlyFlow = stats?.hourlyFlow ?? [];
+  const maxHourCount = hourlyFlow.length > 0
+    ? Math.max(...hourlyFlow.map(h => Number(h.count)), 1)
     : 1;
 
   return (
@@ -134,11 +136,10 @@ export default function DashboardPage() {
               <span className="material-symbols-outlined text-lg text-emerald-600">payments</span>
             </div>
             <div className="text-2xl font-bold text-slate-900">
-              Rs {(stats?.todaySales || 48500).toLocaleString()}
+              Rs {(stats?.todaySales ?? 0).toLocaleString()}
             </div>
-            <div className="text-xs font-medium text-emerald-600 mt-1 flex items-center gap-1">
-              <span className="material-symbols-outlined text-xs">trending_up</span>
-              <span>+14% vs yesterday</span>
+            <div className="text-xs font-medium text-slate-500 mt-1">
+              Live daily total
             </div>
           </div>
 
@@ -148,7 +149,7 @@ export default function DashboardPage() {
               <span className="material-symbols-outlined text-lg text-orange-600">soup_kitchen</span>
             </div>
             <div className="text-2xl font-bold text-slate-900">
-              {stats?.liveOrders || 12}
+              {stats?.liveOrders ?? 0}
             </div>
             <div className="text-xs font-medium text-slate-500 mt-1">
               Active in kitchen pass
@@ -161,10 +162,10 @@ export default function DashboardPage() {
               <span className="material-symbols-outlined text-lg text-blue-600">table_bar</span>
             </div>
             <div className="text-2xl font-bold text-slate-900">
-              {stats?.activeTables || 8} / 10
+              {stats?.activeTables ?? 0} / 10
             </div>
             <div className="text-xs font-medium text-blue-600 mt-1">
-              80% Hall Occupancy
+              {((stats?.activeTables ?? 0) * 10)}% Hall Occupancy
             </div>
           </div>
 
@@ -178,14 +179,14 @@ export default function DashboardPage() {
               <span className="text-xs text-slate-400 font-normal">/ 5.0</span>
             </div>
             <div className="text-xs font-medium text-amber-600 mt-1">
-              {reviews?.length || 18} Verified Reviews
+              {reviewCount} Verified {reviewCount === 1 ? "Review" : "Reviews"}
             </div>
           </div>
         </div>
 
         {/* Sub-Navigation Tabs */}
-        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+          <div className="flex flex-wrap items-center gap-2">
             {[
               { id: "overview", label: "Overview & Flow", icon: "analytics" },
               { id: "menu", label: "Menu Management", icon: "restaurant_menu" },
@@ -235,35 +236,28 @@ export default function DashboardPage() {
                   <h3 className="text-base font-bold text-slate-900">Guest Order Flow (Today)</h3>
                   <p className="text-xs text-slate-500">Order traffic distribution by hour</p>
                 </div>
-                <span className="text-xs font-semibold text-slate-500 px-2.5 py-1 bg-slate-50 rounded-lg border border-slate-200">
-                  Dinner Peak: 20:00 - 21:00
-                </span>
               </div>
 
-              {/* Hourly Chart Bar Visualization */}
-              <div className="flex items-end gap-2 h-44 pt-4 border-b border-slate-100">
-                {(stats?.hourlyFlow && stats.hourlyFlow.length > 0 ? stats.hourlyFlow : [
-                  { hour: 13, count: 4 },
-                  { hour: 14, count: 7 },
-                  { hour: 15, count: 3 },
-                  { hour: 18, count: 6 },
-                  { hour: 19, count: 11 },
-                  { hour: 20, count: 18 },
-                  { hour: 21, count: 14 },
-                  { hour: 22, count: 8 },
-                ]).map((h: any) => (
-                  <div key={h.hour} className="flex flex-col items-center flex-1 group">
-                    <span className="text-[10px] font-bold text-slate-400 group-hover:text-orange-600 transition-colors mb-1">
-                      {h.count}
-                    </span>
-                    <div
-                      className="w-full bg-orange-500 hover:bg-orange-600 rounded-t transition-all"
-                      style={{ height: `${Math.max(12, (Number(h.count) / 20) * 100)}%` }}
-                    />
-                    <span className="text-[11px] font-semibold text-slate-500 mt-2">{h.hour}:00</span>
-                  </div>
-                ))}
-              </div>
+              {hourlyFlow.length === 0 ? (
+                <div className="h-44 flex items-center justify-center border border-dashed border-slate-200 rounded-xl text-xs text-slate-400">
+                  No orders today yet.
+                </div>
+              ) : (
+                <div className="flex items-end gap-2 h-44 pt-4 border-b border-slate-100">
+                  {hourlyFlow.map((h: any) => (
+                    <div key={h.hour} className="flex flex-col items-center flex-1 group">
+                      <span className="text-[10px] font-bold text-slate-400 group-hover:text-orange-600 transition-colors mb-1">
+                        {h.count}
+                      </span>
+                      <div
+                        className="w-full bg-orange-500 hover:bg-orange-600 rounded-t transition-all"
+                        style={{ height: `${Math.max(12, (Number(h.count) / maxHourCount) * 100)}%` }}
+                      />
+                      <span className="text-[11px] font-semibold text-slate-500 mt-2">{h.hour}:00</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -271,7 +265,6 @@ export default function DashboardPage() {
         {/* ================= TAB 2: MENU MANAGEMENT ================= */}
         {activeTab === "menu" && (
           <div className="space-y-4">
-            {/* Add Dish Modal/Inline Form */}
             {isAddingDish && (
               <form onSubmit={handleAddDish} className="bg-white border border-orange-200 rounded-2xl p-5 shadow-xs space-y-4">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -322,14 +315,13 @@ export default function DashboardPage() {
               </form>
             )}
 
-            {/* Dishes Table */}
             <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
                     <th className="py-3 px-4">ID</th>
                     <th className="py-3 px-4">Dish</th>
-                    <th className="py-3 px-4">Spice &amp; Allergens</th>
+                    <th className="py-3 px-4">Allergens</th>
                     <th className="py-3 px-4">Live Price</th>
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
@@ -344,7 +336,7 @@ export default function DashboardPage() {
                       </td>
                       <td className="py-3 px-4">
                         <span className="inline-block px-2 py-0.5 rounded-lg bg-orange-50 text-orange-700 font-medium text-[10px]">
-                          {d.allergens?.join(", ") || "Standard"}
+                          {d.allergens?.length ? d.allergens.join(", ") : "None"}
                         </span>
                       </td>
                       <td className="py-3 px-4">
@@ -422,31 +414,32 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="divide-y divide-slate-100">
-              {(reviews && reviews.length > 0 ? reviews : [
-                { id: 1, table_number: 4, rating: 5, comment: "Chicken Karahi was absolutely phenomenal! Prompt service by Rajesh.", created_at: "Just now" },
-                { id: 2, table_number: 9, rating: 5, comment: "Loved the butter naan and quick split bill option. Super smooth.", created_at: "25m ago" },
-                { id: 3, table_number: 2, rating: 4, comment: "Food was hot and tasty. Fast Wi-Fi.", created_at: "1h ago" },
-              ]).map((rev: any, idx: number) => (
-                <div key={idx} className="py-3.5 flex items-start justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded-lg bg-orange-50 text-orange-700 text-xs font-bold">
-                        Table {rev.table_number || 4}
-                      </span>
-                      <div className="flex text-amber-400">
-                        {Array.from({ length: rev.rating || 5 }).map((_, s) => (
-                          <span key={s} className="material-symbols-outlined text-sm">star</span>
-                        ))}
+            {!reviews || reviews.length === 0 ? (
+              <p className="py-8 text-center text-xs text-slate-400">No guest reviews yet.</p>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {reviews.map((rev) => (
+                  <div key={rev.id} className="py-3.5 flex items-start justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded-lg bg-orange-50 text-orange-700 text-xs font-bold">
+                          Table {rev.table_number || rev.table_id}
+                        </span>
+                        <div className="flex text-amber-400">
+                          {Array.from({ length: rev.rating }).map((_, s) => (
+                            <span key={s} className="material-symbols-outlined text-sm">star</span>
+                          ))}
+                        </div>
                       </div>
-                      <span className="text-xs text-slate-400">Dine-in</span>
+                      <p className="text-xs text-slate-700 mt-1">{rev.comment || "5-star rating"}</p>
                     </div>
-                    <p className="text-xs text-slate-700 mt-1">{rev.comment || "Great dining experience!"}</p>
+                    <span className="text-[11px] text-slate-400 whitespace-nowrap">
+                      {new Date(rev.created_at).toLocaleTimeString()}
+                    </span>
                   </div>
-                  <span className="text-[11px] text-slate-400 whitespace-nowrap">{rev.created_at || "Recent"}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </main>
