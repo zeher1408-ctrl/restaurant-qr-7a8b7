@@ -20,6 +20,9 @@ CREATE TABLE IF NOT EXISTS dishes (
 CREATE TABLE IF NOT EXISTS orders (
   id SERIAL PRIMARY KEY,
   table_id INT REFERENCES tables(id),
+  guest_name TEXT,
+  guest_phone TEXT,
+  notes TEXT,
   status TEXT NOT NULL DEFAULT 'NEW',   -- NEW | COOKING | READY | SERVED
   created_at TIMESTAMP DEFAULT now()
 );
