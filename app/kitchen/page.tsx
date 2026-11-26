@@ -19,6 +19,9 @@ type Order = {
   id: number;
   table_id: number;
   table_number: number;
+  guest_name: string | null;
+  guest_phone: string | null;
+  notes: string | null;
   status: "NEW" | "COOKING" | "READY" | "SERVED";
   created_at: string;
   items: OrderItem[];
@@ -214,7 +217,9 @@ export default function KitchenKDS() {
                               Table {order.table_number || order.table_id}
                             </span>
                           </div>
-                          <div className="text-xs text-slate-400 font-medium mt-0.5">Dine-in Order</div>
+                          <div className="text-xs text-slate-400 font-medium mt-0.5">
+                            {order.guest_name ? `${order.guest_name} • Dine-in` : "Dine-in Order"}
+                          </div>
                         </div>
                         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-mono font-bold">
                           <span className="material-symbols-outlined text-sm">schedule</span>
@@ -231,6 +236,11 @@ export default function KitchenKDS() {
                           </div>
                         ))}
                       </div>
+                      {order.notes && (
+                        <div className="mt-2 px-2.5 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-[11px] font-medium text-amber-900">
+                          Extra / Note: {order.notes}
+                        </div>
+                      )}
                     </div>
                     <button
                       onClick={() => updateStatus(order.id, "COOKING")}
@@ -294,7 +304,9 @@ export default function KitchenKDS() {
                               Table {order.table_number || order.table_id}
                             </span>
                           </div>
-                          <div className="text-xs text-slate-400 font-medium mt-0.5">Cooking in progress</div>
+                          <div className="text-xs text-slate-400 font-medium mt-0.5">
+                            {order.guest_name ? `${order.guest_name} • Cooking` : "Cooking in progress"}
+                          </div>
                         </div>
                         <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-mono font-bold ${
                           isDelayed ? "bg-rose-100 text-rose-800" : "bg-amber-50 text-amber-800"
@@ -313,6 +325,11 @@ export default function KitchenKDS() {
                           </div>
                         ))}
                       </div>
+                      {order.notes && (
+                        <div className="mt-2 px-2.5 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-[11px] font-medium text-amber-900">
+                          Extra / Note: {order.notes}
+                        </div>
+                      )}
                     </div>
                     <button
                       onClick={() => updateStatus(order.id, "READY")}
